@@ -1,0 +1,7 @@
+[theme]
+primaryColor = "#0096D2"
+
+[server]
+# a pasta está no OneDrive, onde o monitor de arquivos padrão perde alterações;
+# o polling detecta mudanças nos módulos de src/ de forma confiável
+fileWatcherType = "poll"
