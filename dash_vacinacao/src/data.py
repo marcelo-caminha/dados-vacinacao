@@ -65,9 +65,8 @@ def _fabricante(vacinas: pd.Series) -> pd.Series:
 # cache_resource compartilha o mesmo objeto entre execuções sem copiá-lo
 # (cache_data desserializa uma cópia de ~1M de linhas a cada rerun);
 # por isso o dataframe retornado deve ser tratado como somente leitura
-@st.cache_resource(show_spinner="Carregando dados de vacinação...")
-def carregar_dados(caminho: Path = config.CSV_PATH) -> pd.DataFrame:
-    """Lê o CSV e converte as colunas usadas no dashboard para os tipos corretos."""
+def carregar_csv_original(caminho: Path = config.CSV_PATH) -> pd.DataFrame:
+    """Lê o CSV original, sem conversões, ignorando a última linha se estiver truncada."""
     with open(caminho, "rb") as arquivo:
         # o arquivo baixado está truncado: a leitura é feita em streaming
         # e para antes da última linha se ela estiver incompleta
@@ -75,7 +74,25 @@ def carregar_dados(caminho: Path = config.CSV_PATH) -> pd.DataFrame:
         leitor = io.BufferedReader(_LeitorLimitado(arquivo, limite))
         # as colunas têm poucos valores distintos: ler como category reduz
         # bastante o pico de memória em relação a strings (object)
-        df = pd.read_csv(leitor, sep=config.CSV_SEP, encoding="utf-8", dtype="category")
+        return pd.read_csv(
+            leitor, sep=config.CSV_SEP, encoding="utf-8", dtype="category",
+            usecols=config.COLUNAS_USADAS,
+        )
+
+
+@st.cache_resource(show_spinner="Carregando dados de vacinação...")
+def carregar_dados() -> pd.DataFrame:
+    """Lê o dataset e converte as colunas usadas no dashboard para os tipos corretos.
+
+    Usa a versão reduzida (versionada no GitHub, usada no deploy) quando ela
+    existe; senão, lê o CSV original.
+    """
+    if config.CSV_REDUZIDO_PATH.exists():
+        df = pd.read_csv(
+            config.CSV_REDUZIDO_PATH, sep=config.CSV_SEP, encoding="utf-8", dtype="category"
+        )
+    else:
+        df = carregar_csv_original()
 
     df["data_vacinacao"] = pd.to_datetime(
         df["data_vacinacao"].astype(str).str[:10], errors="coerce"

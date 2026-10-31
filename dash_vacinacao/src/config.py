@@ -8,7 +8,11 @@ DATA_DIR = BASE_DIR / "data"
 ASSETS_DIR = BASE_DIR / "assets"
 
 CSV_PATH = DATA_DIR / "2022-perfil-das-pessoas-vacinadas-covid-19 (1).csv"
+# versão só com as colunas usadas, compactada, para caber no GitHub
+# (gerada por scripts/reduzir_dataset.py)
+CSV_REDUZIDO_PATH = DATA_DIR / "vacinacao_reduzida.csv.gz"
 CSV_SEP = ";"
+COLUNAS_USADAS = ["idade", "sexo", "vacina_fabricante", "data_vacinacao"]
 BANNER_IMAGE = ASSETS_DIR / "banner.png"
 
 # ---------- APP ---------------------------------------------
